@@ -1,0 +1,21 @@
+- nodeset:
+    name: shake-factory-latest
+    nodes:
+      - name: container
+        label: pod-haskell-cabal-f32
+
+- job:
+    name: shake-factory-hlint
+    parent: hlint
+    nodeset:
+      nodes:
+        - name: container
+          label: pod-haskell-f32
+
+- project:
+    check: &jobs
+      jobs:
+        - cabal-test:
+            nodeset: shake-factory-latest
+        - shake-factory-hlint
+    gate: *jobs

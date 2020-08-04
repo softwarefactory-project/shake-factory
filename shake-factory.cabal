@@ -1,0 +1,62 @@
+cabal-version:       2.4
+name:                shake-factory
+version:             0.0.0.0
+synopsis:            See README for more info
+description:         Shake functions to build project in Software Factory.
+license:             Apache-2.0
+license-file:        LICENSE
+author:              Software Factory Dev
+maintainer:          Software Factory Dev <softwarefactory-dev@redhat.com>
+copyright:           2020 Red Hat
+category:            Development
+build-type:          Simple
+extra-doc-files:     README.md
+tested-with:         GHC == 8.6.5
+
+common common-options
+  build-depends:       base >= 4.12.0.0 && < 4.15
+                     , dhall == 1.34.0
+                     , shake == 0.19.1
+                     , shake-dhall == 0.1.0.0
+  ghc-options:         -Wall
+                       -Wcompat
+                       -Widentities
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wredundant-constraints
+  if impl(ghc >= 8.2)
+    ghc-options:       -fhide-source-paths
+  if impl(ghc >= 8.4)
+    ghc-options:       -Wmissing-export-lists
+                       -Wpartial-fields
+  if impl(ghc >= 8.8)
+    ghc-options:       -Wmissing-deriving-strategies
+  if impl(ghc >= 8.10)
+    ghc-options:       -Wunused-packages
+
+  default-language:    Haskell2010
+
+library
+  import:              common-options
+  hs-source-dirs:      src
+  exposed-modules:     ShakeFactory
+
+executable pypi-cli
+  import:              common-options
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  build-depends:       shake-factory
+  ghc-options:         -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+
+test-suite shake-factory-test
+  import:              common-options
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       shake-factory
+                     , doctest
+  ghc-options:         -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
