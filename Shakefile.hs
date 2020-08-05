@@ -10,4 +10,5 @@ main = shakeMain $ do
   want ["install"]
   phony "test" cabalTest
   phony "install" $ need ["test"] >> cabalInstallLib "lib:shake-factory shake"
+  cabalDocs
   clean

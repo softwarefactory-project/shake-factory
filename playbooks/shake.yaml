@@ -11,3 +11,6 @@
       stat:
         path: "{{ project_shakefile }}"
       register: _shakefile
+
+    - include_role:
+        name: shake-build
