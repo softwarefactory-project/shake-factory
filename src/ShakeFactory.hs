@@ -9,6 +9,7 @@ module ShakeFactory
     getHome,
     homeRelative,
     clean,
+    cabalDocs,
     cabalInstallLib,
     cabalTest,
   )
@@ -35,6 +36,16 @@ homeRelative :: String -> Action String
 homeRelative path = do
   home <- getHome
   pure (home </> path)
+
+cabalDocs :: Rules ()
+cabalDocs = do
+  phony "docs" $ need ["build/docs/index.html"]
+  "build/docs/index.html" %> \dest -> do
+    Stdout out <- command [] "cabal" ["haddock"]
+    let docDir = (takeDirectory $ last $ lines $ out) <> "/"
+    let outDir = "build/docs/"
+    cmd_ "mkdir -p" outDir
+    cmd_ "rsync -a --delete" docDir outDir
 
 clean :: Rules ()
 clean = phony "clean" $ do

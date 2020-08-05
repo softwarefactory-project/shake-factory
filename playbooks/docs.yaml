@@ -1,0 +1,14 @@
+- hosts: all
+  tasks:
+    - name: Move documentation to zuul-output
+      command: "mv {{ docs_dir }} {{ ansible_user_dir }}/zuul-output/logs/docs"
+      args:
+        chdir: "{{ zuul.project.src_dir }}"
+
+    - name: Return docs to Zuul
+      zuul_return:
+        data:
+          zuul:
+            artifacts:
+              - name: "Documentation preview"
+                url: "docs/"

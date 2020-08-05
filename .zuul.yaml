@@ -27,6 +27,25 @@
     name: shake-factory-test
     parent: shake-factory-base
 
+- job:
+    name: shake-factory-docs
+    parent: shake-factory-base
+    post-run: playbooks/docs.yaml
+    vars:
+      shake_target: docs
+      docs_dir: build/docs
+
+# depends-on: https://softwarefactory-project.io/r/19187
+# - job:
+#     name: shake-factory-publish-docs
+#     parent: shake-factory-docs
+#     vars:
+#       shake_target: docs
+
+# - job:
+#     name: shake-factory-publish-docs
+#     parent: docssf-publish
+
 - project:
     check: &jobs
       jobs:
@@ -36,4 +55,8 @@
             nodeset: shake-factory-latest
         - shake-factory-test
         - shake-factory-hlint
+        - shake-factory-docs
     gate: *jobs
+#    post:
+#      jobs:
+#        - shake-factory-publish-docs
