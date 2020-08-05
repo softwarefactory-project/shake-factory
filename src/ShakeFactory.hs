@@ -5,9 +5,41 @@
 --
 -- See README for more info
 module ShakeFactory
-  ( someFunc,
+  ( shakeMain,
+    getHome,
+    homeRelative,
+    clean,
+    cabalInstallLib,
+    cabalTest,
   )
 where
 
-someFunc :: IO ()
-someFunc = putStrLn ("someFunc" :: String)
+import Data.Maybe
+import Development.Shake
+import Development.Shake.FilePath
+
+cabalInstallLib :: String -> Action ()
+cabalInstallLib lib = do
+  -- See https://github.com/haskell/cabal/issues/6394
+  homeGhc <- homeRelative ".ghc"
+  cmd_ $ "rm -Rf " <> homeGhc
+  cmd_ $ "cabal install --lib " <> lib
+
+cabalTest :: Action ()
+cabalTest = cmd_ "cabal build --enable-tests" >> cmd_ "cabal test"
+
+getHome :: Action String
+getHome = fromMaybe "/root/" <$> getEnv "HOME"
+
+homeRelative :: String -> Action String
+homeRelative path = do
+  home <- getHome
+  pure (home </> path)
+
+clean :: Rules ()
+clean = phony "clean" $ do
+  putInfo "Cleaning files in _build"
+  removeFilesAfter "_build" ["//*"]
+
+shakeMain :: Rules () -> IO ()
+shakeMain = shakeArgs shakeOptions {shakeFiles = "_build"}

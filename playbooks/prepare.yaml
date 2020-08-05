@@ -1,0 +1,13 @@
+- hosts: all
+  vars:
+    project_shakefile: "{{ zuul.project.src_dir }}/Shakefile.hs"
+  tasks:
+    - name: Install shake-factory
+      shell: rm -Rf ~/.ghc && cabal install --lib lib:shake-factory shake dhall
+      args:
+        chdir: "~/src/softwarefactory-project.io/software-factory/shake-factory"
+
+    - name: Check if shakefile exist
+      stat:
+        path: "{{ project_shakefile }}"
+      register: _shakefile

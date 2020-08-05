@@ -41,7 +41,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     ShakeFactory
 
-executable pypi-cli
+executable shake-factory
   import:              common-options
   hs-source-dirs:      app
   main-is:             Main.hs

@@ -12,6 +12,21 @@
         - name: container
           label: pod-haskell-f32
 
+- job:
+    name: shake-factory-base
+    abstract: true
+    parent: shake-build
+    nodeset: shake-factory-latest
+    pre-run: playbooks/prepare.yaml
+    vars:
+      ghc_version: 8.6
+    required-projects:
+      - softwarefactory-project.io/software-factory/shake-factory
+
+- job:
+    name: shake-factory-test
+    parent: shake-factory-base
+
 - project:
     check: &jobs
       jobs:
@@ -19,5 +34,6 @@
             vars:
               ghc_version: 8.6
             nodeset: shake-factory-latest
+        - shake-factory-test
         - shake-factory-hlint
     gate: *jobs
