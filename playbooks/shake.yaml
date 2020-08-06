@@ -14,3 +14,23 @@
 
     - include_role:
         name: shake-build
+
+    - name: Check for diff
+      command: git diff
+      args:
+        chdir: "{{ zuul.project.src_dir }}"
+      register: render_diff
+
+    - name: Abort on diff
+      when:
+        - render_diff.stdout
+        - not (diff_ignore_errors | default(false))
+      failed_when: true
+      debug:
+        msg: |
+          The repository index is modified after shake.
+          Please run `shake {{ shake_target }}` before `git commit`
+
+          The difference is:
+
+          {{ git_diff.stdout }}
