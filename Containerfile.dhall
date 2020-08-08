@@ -36,7 +36,7 @@ in    Containerfile.from "registry.fedoraproject.org/fedora:32"
         "Install shake-factory"
         [ "rm -Rf ~/.ghc"
         , "cd /usr/src/shake-factory"
-        , "cabal install --lib lib:shake-factory shake dhall text bytestring containers"
+        , "cabal install --lib lib:shake-factory dhall shake shake-dhall text bytestring containers"
         ]
     # (DhallPackages.Prelude "v17.0.0").install
     # DhallPackages.Ansible.install

@@ -40,6 +40,7 @@ library
   import:              common-options
   hs-source-dirs:      src
   exposed-modules:     ShakeFactory
+                     , ShakeFactory.Dhall
 
 executable shake-factory
   import:              common-options

@@ -8,7 +8,7 @@ module ShakeFactory
   ( shakeMain,
     getHome,
     homeRelative,
-    clean,
+    cleanRules,
     cabalDocs,
     cabalInstallLib,
     cabalTest,
@@ -47,8 +47,8 @@ cabalDocs = do
     cmd_ "mkdir -p" outDir
     cmd_ "rsync -a --delete" docDir outDir
 
-clean :: Rules ()
-clean = phony "clean" $ do
+cleanRules :: Rules ()
+cleanRules = phony "clean" $ do
   putInfo "Cleaning files in _build"
   removeFilesAfter "_build" ["//*"]
 
