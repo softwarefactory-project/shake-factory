@@ -50,10 +50,6 @@
 - project:
     check: &jobs
       jobs:
-        - cabal-test:
-            vars:
-              ghc_version: 8.6
-            nodeset: shake-factory-latest
         - shake-factory-test
         - shake-factory-hlint
         - shake-factory-docs

@@ -19,8 +19,10 @@ buildContainer = do
   need ["build/Containerfile"]
   cwd <- getEnvWithDefault "." "PWD"
   cmd_ "podman build -v" (cwd <> ":/usr/src/shake-factory:Z") "-t" imageRef "-f Containerfile build"
-  Stdout gitVer <- command [] "git" ["log", "--oneline", "-n", "1"]
-  writeFile' "build/container" (head (words gitVer))
+  Stdout gitVerInfo <- command [] "git" ["log", "--oneline", "-n", "1"]
+  let gitVer = head (words gitVerInfo)
+  cmd_ "podman tag" imageRef (imageRef <> ":" <> gitVer)
+  writeFile' "build/container" gitVer
 
 imageRef :: String
 imageRef = "quay.io/software-factory/shake-factory"
@@ -48,6 +50,6 @@ main = shakeMain $ do
   "build/container" %> const buildContainer
   phony imageRef publishContainer
   phony "test" cabalTest
-  phony "install" $ need ["test"] >> cabalInstallLib "lib:shake-factory shake"
+  phony "install" $ need ["test"] >> cabalInstallLib "lib:shake-factory dhall shake shake-dhall"
   cabalDocs
-  clean
+  cleanRules
