@@ -8,12 +8,14 @@ module ShakeFactory.Dhall
     -- * Actions
     dhallTopLevelPackageAction,
     dhallPackageAction,
+    dhallUnionAction,
     dhallReadmeAction,
     dhallDefaultAction,
 
     -- * Helpers
     dhallDocsRules,
     mkDhallPackage,
+    mkDhallUnion,
 
     -- * Re-Export
     needDhall,
@@ -152,17 +154,13 @@ dhallDocsRules name =
       dhallDocsNeed
       cmd_ "rsync --delete -avi ./build/docs/" dhallDocsDest
 
--- | Create a dhall package from a list of files:
---
---   >>> mkDhallPackage ["Type.dhall", "Project/package.dhall"]
---   "{ Type = ./Type.dhall, Project = ./Project/package.dhall }"
-mkDhallPackage :: [FilePath] -> String
-mkDhallPackage = mkRecord . map mkAttribute
+mkDhallObject :: (String, String) -> String -> String -> [FilePath] -> String
+mkDhallObject (prefix, suffix) sep assignSep = mkObject . map mkItems
   where
-    mkRecord :: [String] -> String
-    mkRecord attrs = "{ " <> drop 2 (concat attrs) <> " }"
-    mkAttribute :: FilePath -> String
-    mkAttribute f = ", " <> getName f <> " = ./" <> f
+    mkObject :: [String] -> String
+    mkObject items = prefix <> " " <> drop 3 (concat items) <> " " <> suffix
+    mkItems :: FilePath -> String
+    mkItems f = " " <> sep <> " " <> getName f <> " " <> assignSep <> " ./" <> f
     getName :: FilePath -> String
     getName fp =
       let fc = getFirstComponent fp
@@ -172,24 +170,44 @@ mkDhallPackage = mkRecord . map mkAttribute
     getFirstComponent :: FilePath -> FilePath
     getFirstComponent = head . splitPath
 
--- | Create a dhall package at file at location from ["*.dhall", */package.dhall]
---   For example, if the location directory contains a Type and default file, the package will contains:
---   { Type = ./Type.dhall, default = ./default.dhall }
-dhallPackageAction :: FilePath -> Action ()
-dhallPackageAction target =
+-- | Create a dhall package from a list of files:
+--
+--   >>> mkDhallPackage ["Type.dhall", "Project/package.dhall"]
+--   "{ Type = ./Type.dhall , Project = ./Project/package.dhall }"
+mkDhallPackage :: [FilePath] -> String
+mkDhallPackage = mkDhallObject ("{", "}") "," "="
+
+-- | Create a dhall union from a list of files:
+--
+--   >>> mkDhallUnion ["Job/package.dhall", "Project/package.dhall"]
+--   "< Job : ./Job/package.dhall | Project : ./Project/package.dhall >"
+mkDhallUnion :: [FilePath] -> String
+mkDhallUnion = mkDhallObject ("<", ">") "|" ":"
+
+dhallFileAction :: ([FilePath] -> String) -> [FilePattern] -> FilePath -> Action ()
+dhallFileAction mkFile patterns target =
   do
     -- Get the directory files excluding "package.dhall" and "Prelude.dhall"
-    files <- filter (`notElem` ["package.dhall", "Prelude.dhall"]) <$> getDirectoryFiles targetDir ["*.dhall", "*/package.dhall"]
-    putVerbose $ "Creating package with: " <> show files
-    -- Generate the package.dhall
-    let packageText = mkDhallPackage files
+    files <- filter (`notElem` ["package.dhall", "Prelude.dhall"]) <$> getDirectoryFiles targetDir patterns
+    putVerbose $ "Creating file with: " <> show files
+    -- Generate the file
+    let packageText = mkFile files
     putVerbose $ target <> ": need " <> show files <> " (from " <> targetDir <> ") -> \n" <> packageText
-    -- Indicate that this package needs all of it's file import
+    -- Indicate that this file needs all of it's file import
     need (map (targetDir </>) files)
     -- Format and freeze the package
     dhallFormat packageText >>= writeFile' target
   where
     targetDir = takeDirectory target
+
+dhallUnionAction :: [FilePattern] -> FilePath -> Action ()
+dhallUnionAction = dhallFileAction mkDhallUnion
+
+-- | Create a dhall package at file at location from ["*.dhall", */package.dhall]
+--   For example, if the location directory contains a Type and default file, the package will contains:
+--   { Type = ./Type.dhall, default = ./default.dhall }
+dhallPackageAction :: FilePath -> Action ()
+dhallPackageAction = dhallFileAction mkDhallPackage ["*.dhall", "*/package.dhall"]
 
 -- | Ensure the readme contains the latest content and result
 --   This function replace every code-block with the file content
