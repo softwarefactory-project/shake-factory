@@ -29,8 +29,8 @@
       debug:
         msg: |
           The repository index is modified after shake.
-          Please run `shake {{ shake_target }}` before `git commit`
+          Please run `shake {{ shake_target|default("") }}` before `git commit`
 
           The difference is:
 
-          {{ git_diff.stdout }}
+          {{ render_diff.stdout }}
