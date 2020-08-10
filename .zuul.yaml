@@ -27,6 +27,8 @@
 - job:
     name: shake-factory-test
     parent: shake-factory-base
+    vars:
+      shake_target: ""
 
 - job:
     name: shake-factory-docs

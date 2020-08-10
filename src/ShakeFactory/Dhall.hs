@@ -4,6 +4,7 @@ module ShakeFactory.Dhall
     dhallFormat,
     dhallFreeze,
     dhallFormatFreeze,
+    dhallYaml,
 
     -- * Actions
     dhallTopLevelPackageAction,
@@ -22,6 +23,7 @@ module ShakeFactory.Dhall
   )
 where
 
+import Control.Monad (when)
 import Data.Bifunctor (second)
 import Data.List (isPrefixOf, isSuffixOf, sortOn)
 import Data.Text (Text, pack, unpack)
@@ -110,6 +112,19 @@ dhallFreeze ::
   String ->
   Action String
 dhallFreeze cwd = dhallCommand cwd ["freeze", "--all"]
+
+-- | A shake action to render a yaml document
+dhallYaml ::
+  -- | The expression
+  String ->
+  -- | The output file
+  FilePath ->
+  Action ()
+dhallYaml expr output = do
+  exprIsFile <- doesFileExist expr
+  when exprIsFile (needDhall [expr])
+  Stdout yaml <- command [Stdin expr] "dhall-to-yaml" []
+  writeFile' output yaml
 
 -- | A shake action to format and freeze an expression
 dhallFormatFreeze ::
