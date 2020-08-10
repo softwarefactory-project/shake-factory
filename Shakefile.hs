@@ -50,6 +50,6 @@ main = shakeMain $ do
   "build/container" %> const buildContainer
   phony imageRef publishContainer
   phony "test" cabalTest
-  phony "install" $ need ["test"] >> cabalInstallLib "lib:shake-factory dhall shake shake-dhall"
+  phony "install" $ need ["test"] >> cabalInstallLib "lib:shake-factory dhall shake shake-dhall text"
   cabalDocs
   cleanRules

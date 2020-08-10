@@ -9,6 +9,7 @@ module ShakeFactory.Dhall
     dhallTopLevelPackageAction,
     dhallPackageAction,
     dhallReadmeAction,
+    dhallDefaultAction,
 
     -- * Helpers
     dhallDocsRules,
@@ -19,10 +20,65 @@ module ShakeFactory.Dhall
   )
 where
 
-import Data.List (isPrefixOf, isSuffixOf)
+import Data.Bifunctor (second)
+import Data.List (isPrefixOf, isSuffixOf, sortOn)
+import Data.Text (Text, pack, unpack)
 import Development.Shake
 import Development.Shake.Dhall (needDhall)
 import Development.Shake.FilePath
+import Dhall.Core
+import Dhall.Map (fromList, toList)
+import Dhall.Parser (exprFromText)
+import Dhall.Pretty (prettyExpr)
+
+-- | Convert a dhall type record to a value record using None value for Optional attributes
+-- | >>> getDefaults "./Job/Type.dhall" "{ name : Text, become : Optional Bool, task : Optional ./Task.dhall }"
+-- | "{ become = None Bool, task = None ./Task.dhall }"
+getDefaults :: FilePath -> Text -> Text
+getDefaults fp content = decode
+  where
+    decode :: Text
+    decode = case exprFromText fp content of
+      Left err -> error $ show err
+      Right expr -> case Dhall.Core.denote expr of
+        Record record -> pack $ (show $ prettyExpr $ process record) <> "\n"
+        _ -> error $ fp <> ": is not a record type"
+    process record =
+      RecordLit
+        $ fromList
+        $ sortOn fst
+        $ map (second makeRecordField)
+        $ go
+        $ map (second recordFieldValue)
+        $ toList record
+    -- Process every record element
+    go :: [(Text, Expr s Import)] -> [(Text, Expr s Import)]
+    go [] = []
+    go ((n, App Optional v) : xs) = (n, App None v) : go xs
+    go (_ : xs) = go xs
+
+isRecord :: FilePath -> Text -> Bool
+isRecord fn content = case exprFromText fn content of
+  Left _ -> False
+  Right expr -> case Dhall.Core.denote expr of
+    Record _ -> True
+    _ -> False
+
+dhallDefaultAction :: FilePath -> Action ()
+dhallDefaultAction fp =
+  do
+    fileContent <- readFile' src
+    if isRecord fp (pack fileContent)
+      then do
+        putVerbose $ fp <> ": created from " <> src
+        writeFile' fp $ unpack (getDefaults src $ pack fileContent)
+      else do
+        putVerbose $ fp <> ": can't be generated from Type.dhall"
+        pure ()
+  where
+    src = ren "Type.dhall" fp
+    ren fn2 fn = joinPath (dropLast (splitPath fn) <> [fn2])
+    dropLast = reverse . drop 1 . reverse
 
 -- | A shake action to run dhall
 dhallCommand ::
