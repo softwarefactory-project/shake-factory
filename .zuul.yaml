@@ -43,7 +43,7 @@
 - job:
     name: shake-factory-publish-docs
     nodeset: shake-factory-latest
-    parent: shake-factory-base
+    parent: docssf-publish
     post-run:
       - playbooks/docs.yaml
     required-projects:

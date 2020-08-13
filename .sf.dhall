@@ -61,6 +61,7 @@ let publish-docs =
       //  base
       //  { name = Some "shake-factory-publish-docs"
           , abstract = None Bool
+          , parent = Some "docssf-publish"
           , vars = Some (Zuul.Vars.object (base-vars # docs-vars))
           }
 
