@@ -53,4 +53,4 @@ cleanRules = phony "clean" $ do
   removeFilesAfter "_build" ["//*"]
 
 shakeMain :: Rules () -> IO ()
-shakeMain = shakeArgs shakeOptions {shakeFiles = "_build"}
+shakeMain = shakeArgs shakeOptions {shakeFiles = "build"}
