@@ -12,6 +12,7 @@ module ShakeFactory.Dhall
     dhallUnionAction,
     dhallReadmeAction,
     dhallDefaultAction,
+    dhallZuulAction,
 
     -- * Helpers
     dhallDocsRules,
@@ -113,6 +114,18 @@ dhallFreeze ::
   Action String
 dhallFreeze cwd = dhallCommand cwd ["freeze", "--all"]
 
+-- | Separate yaml block with an empty line
+yamlPretty :: String -> String
+yamlPretty = unlines . init . unblocks . blocks [] . lines
+  where
+    unblocks :: [[String]] -> [String]
+    unblocks = concatMap (\l -> reverse l <> [""])
+    blocks :: [String] -> [String] -> [[String]]
+    blocks blk [] = [blk]
+    blocks blk (x : xs)
+      | "- " `isPrefixOf` x = blk : blocks [x] xs
+      | otherwise = blocks (x : blk) xs
+
 -- | A shake action to render a yaml document
 dhallYaml ::
   -- | The expression
@@ -124,7 +137,16 @@ dhallYaml expr output = do
   exprIsFile <- doesFileExist expr
   when exprIsFile (needDhall [expr])
   Stdout yaml <- command [Stdin expr] "dhall-to-yaml" []
-  writeFile' output yaml
+  writeFile' output (yamlPretty yaml)
+
+-- | A shake action to render a zuul configuration
+dhallZuulAction ::
+  -- | The expression
+  String ->
+  -- | The output file
+  FilePath ->
+  Action ()
+dhallZuulAction = dhallYaml
 
 -- | A shake action to format and freeze an expression
 dhallFormatFreeze ::

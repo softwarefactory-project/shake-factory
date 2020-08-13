@@ -7,6 +7,7 @@ import Development.Shake.FilePath
 import Development.Shake.Util
 import qualified Dhall
 import ShakeFactory
+import ShakeFactory.Dhall
 
 publishContainer :: Action ()
 publishContainer = do
@@ -45,7 +46,8 @@ generateContainerFile = do
 
 main :: IO ()
 main = shakeMain $ do
-  want ["install"]
+  want ["install", ".zuul.yaml"]
+  ".zuul.yaml" %> dhallZuulAction "(./.sf.dhall).zuul"
   "build/Containerfile" %> const generateContainerFile
   "build/container" %> const buildContainer
   phony imageRef publishContainer

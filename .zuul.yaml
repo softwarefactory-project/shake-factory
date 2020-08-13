@@ -1,60 +1,74 @@
+
+
 - nodeset:
     name: shake-factory-latest
     nodes:
-      - name: container
-        label: pod-haskell-cabal-f32
+      - label: pod-haskell-cabal-f32
+        name: container
 
 - job:
     name: shake-factory-hlint
-    parent: hlint
     nodeset:
       nodes:
-        - name: container
-          label: pod-haskell-f32
+        - label: pod-haskell-f32
+          name: container
+    parent: hlint
 
 - job:
-    name: shake-factory-base
     abstract: true
+    name: shake-factory-base
     nodeset: shake-factory-latest
-    run: playbooks/shake.yaml
+    required-projects:
+      - name: softwarefactory-project.io/software-factory/shake-factory
     roles:
       - zuul: zuul-jobs
+    run: playbooks/shake.yaml
     vars:
       ghc_version: 8.6
-    required-projects:
-      - softwarefactory-project.io/software-factory/shake-factory
+      shake_target: ''
 
 - job:
     name: shake-factory-test
     parent: shake-factory-base
-    vars:
-      shake_target: ""
 
 - job:
     name: shake-factory-docs
     parent: shake-factory-base
-    post-run: playbooks/docs.yaml
+    post-run:
+      - playbooks/docs.yaml
     vars:
-      shake_target: docs
       docs_dir: build/docs
-
-- job:
-    name: shake-factory-publish-docs
-    parent: shake-factory-docs
-    vars:
       shake_target: docs
 
 - job:
     name: shake-factory-publish-docs
-    parent: docssf-publish
+    nodeset: shake-factory-latest
+    parent: shake-factory-base
+    post-run:
+      - playbooks/docs.yaml
+    required-projects:
+      - name: softwarefactory-project.io/software-factory/shake-factory
+    roles:
+      - zuul: zuul-jobs
+    run: playbooks/shake.yaml
+    vars:
+      docs_dir: build/docs
+      ghc_version: 8.6
+      shake_target: docs
 
 - project:
-    check: &jobs
+    check:
       jobs:
-        - shake-factory-test
         - shake-factory-hlint
+        - shake-factory-base
+        - shake-factory-test
         - shake-factory-docs
-    gate: *jobs
+    gate:
+      jobs:
+        - shake-factory-hlint
+        - shake-factory-base
+        - shake-factory-test
+        - shake-factory-docs
     post:
       jobs:
         - shake-factory-publish-docs
