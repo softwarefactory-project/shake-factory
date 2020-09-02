@@ -1,5 +1,5 @@
 let Zuul =
-        env:DHALL_ZULL
+        env:DHALL_ZUUL
       ? https://raw.githubusercontent.com/softwarefactory-project/dhall-zuul/0.1.0/package.dhall sha256:40c8a33ee920d12ac4b27571031e27722b4ef63771abaaaca471bc08654c31dc
 
 let Prelude =

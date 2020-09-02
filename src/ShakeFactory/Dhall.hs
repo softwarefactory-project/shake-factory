@@ -116,7 +116,7 @@ dhallFreeze cwd = dhallCommand cwd ["freeze", "--all"]
 
 -- | Separate yaml block with an empty line
 yamlPretty :: String -> String
-yamlPretty = unlines . init . unblocks . blocks [] . lines
+yamlPretty = unlines . dropWhile (== "") . init . unblocks . blocks [] . lines
   where
     unblocks :: [[String]] -> [String]
     unblocks = concatMap (\l -> reverse l <> [""])
