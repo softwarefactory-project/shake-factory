@@ -42,6 +42,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     ShakeFactory
                      , ShakeFactory.Dhall
+                     , ShakeFactory.Python
 
 executable shake-factory
   import:              common-options
