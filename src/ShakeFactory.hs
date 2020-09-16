@@ -12,12 +12,18 @@ module ShakeFactory
     cabalDocs,
     cabalInstallLib,
     cabalTest,
+    projectVersion,
   )
 where
 
 import Data.Maybe
 import Development.Shake
 import Development.Shake.FilePath
+
+projectVersion :: Action String
+projectVersion = do
+  Stdout gitVerInfo <- command [] "git" ["describe", "--always", "--dirty"]
+  pure (head (words gitVerInfo))
 
 cabalInstallLib :: String -> Action ()
 cabalInstallLib lib = do

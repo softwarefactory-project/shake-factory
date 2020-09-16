@@ -43,6 +43,7 @@ library
   exposed-modules:     ShakeFactory
                      , ShakeFactory.Dhall
                      , ShakeFactory.Python
+                     , ShakeFactory.Container
 
 executable shake-factory
   import:              common-options

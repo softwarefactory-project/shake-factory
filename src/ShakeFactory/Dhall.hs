@@ -13,6 +13,7 @@ module ShakeFactory.Dhall
     dhallReadmeAction,
     dhallDefaultAction,
     dhallZuulAction,
+    dhallContainerAction,
 
     -- * Helpers
     dhallDocsRules,
@@ -31,6 +32,7 @@ import Data.Text (Text, pack, unpack)
 import Development.Shake
 import Development.Shake.Dhall (needDhall)
 import Development.Shake.FilePath
+import Dhall (input, strictText)
 import Dhall.Core
 import Dhall.Map (fromList, toList)
 import Dhall.Parser (exprFromText)
@@ -94,8 +96,8 @@ dhallCommand ::
   -- | The command input
   String ->
   Action String
-dhallCommand cwd args input = do
-  Stdout out <- command [Cwd cwd, Stdin input] "dhall" args
+dhallCommand cwd args inputExpr = do
+  Stdout out <- command [Cwd cwd, Stdin inputExpr] "dhall" args
   pure out
 
 -- | A shake action to run dhall format
@@ -147,6 +149,26 @@ dhallZuulAction ::
   FilePath ->
   Action ()
 dhallZuulAction = dhallYaml
+
+-- | A shake action to render a Containerfile
+dhallContainerAction ::
+  -- | The Containerfile expression
+  String ->
+  -- | The dhall-containerfile version
+  String ->
+  -- | The output path
+  FilePath ->
+  Action ()
+dhallContainerAction expr version fp =
+  do
+    containerfile <- liftIO $ unpack <$> input strictText (pack (renderContainerfile <> expr))
+    writeFile' fp containerfile
+  where
+    renderContainerfile = "( " <> containerfileDhallPackage <> " ).render "
+    base = "https://raw.githubusercontent.com/softwarefactory-project/dhall-containerfile/"
+    dhallHash "0.1.0" = "sha256:9ee58096e7ab5b30041c2a2ff0cc187af5bff6b4d7a6be8a6d4f74ed23fe7cdf"
+    dhallHash _ = error "Unknown version"
+    containerfileDhallPackage = base <> version <> "/package.dhall " <> dhallHash version
 
 -- | A shake action to format and freeze an expression
 dhallFormatFreeze ::
