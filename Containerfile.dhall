@@ -1,11 +1,11 @@
 let Containerfile =
-        env:DHALL_CONTAINERFILE
-      ? https://softwarefactory-project.io/cgit/software-factory/dhall-containerfile/plain/package.dhall
+      https://raw.githubusercontent.com/softwarefactory-project/dhall-containerfile/0.1.0/package.dhall sha256:9ee58096e7ab5b30041c2a2ff0cc187af5bff6b4d7a6be8a6d4f74ed23fe7cdf
 
 let DhallPackages =
-      (   env:DHALL_PODENV_HUB
-        ? https://raw.githubusercontent.com/podenv/hub/master/package.dhall
-      ).Environments.Dhall.PackagesStatements
+      ( https://raw.githubusercontent.com/podenv/hub/3346e98f3f01073330a4bbe5dbac8a804a04d52a/environments/dhall.dhall sha256:0845346af0f71b187aebb31b923c2c158cf1215f7a5a19c269cc906c332d8799
+      ).PackagesStatements
+
+let git-rev = env:GIT_REV as Text ? "master"
 
 let env =
       { XDG_CACHE_HOME = "/root/.cache"
@@ -32,13 +32,14 @@ in    Containerfile.from "registry.fedoraproject.org/fedora:32"
         , "cabal install ${libs}"
         , "cabal install --lib ${libs}"
         ]
+    # (DhallPackages.Prelude "v17.0.0").install
+    # DhallPackages.Ansible.install
     # Containerfile.run
         "Install shake-factory"
         [ "rm -Rf ~/.ghc"
         , "cd /usr/src/shake-factory"
+        , "echo building ${git-rev}"
         , "cabal install --lib lib:shake-factory dhall shake shake-dhall text bytestring containers"
         ]
-    # (DhallPackages.Prelude "v17.0.0").install
-    # DhallPackages.Ansible.install
     # Containerfile.workdir "/data"
     # Containerfile.entrypoint [ "shake" ]

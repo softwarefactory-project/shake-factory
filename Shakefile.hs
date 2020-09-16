@@ -8,6 +8,7 @@ import Development.Shake.Util
 import qualified Dhall
 import ShakeFactory
 import ShakeFactory.Dhall
+import System.Environment (setEnv)
 
 publishContainer :: Action ()
 publishContainer = do
@@ -15,30 +16,34 @@ publishContainer = do
   cmd_ "podman push" imageRef
   cmd_ "podman push" (imageRef <> ":" <> gitVer)
 
+projectVersion :: Action String
+projectVersion = do
+  Stdout gitVerInfo <- command [] "git" ["log", "--oneline", "-n", "1"]
+  pure (head (words gitVerInfo))
+
 buildContainer :: Action ()
 buildContainer = do
   need ["build/Containerfile"]
   cwd <- getEnvWithDefault "." "PWD"
   cmd_ "podman build -v" (cwd <> ":/usr/src/shake-factory:Z") "-t" imageRef "-f Containerfile build"
-  Stdout gitVerInfo <- command [] "git" ["log", "--oneline", "-n", "1"]
-  let gitVer = head (words gitVerInfo)
+  gitVer <- projectVersion
   cmd_ "podman tag" imageRef (imageRef <> ":" <> gitVer)
   writeFile' "build/container" gitVer
 
 imageRef :: String
 imageRef = "quay.io/software-factory/shake-factory"
 
-containerfileDhallPackage =
-  intercalate
-    " ? "
-    [ "env:DHALL_CONTAINERFILE",
-      "~/src/softwarefactory-project.io/software-factory/dhall-containerfile",
-      "https://softwarefactory-project.io/cgit/software-factory/dhall-containerfile/plain/package.dhall"
-    ]
+containerfileDhallPackage = base <> tag <> "/package.dhall " <> hash
+  where
+    base = "https://raw.githubusercontent.com/softwarefactory-project/dhall-containerfile/"
+    tag = "0.1.0"
+    hash = "sha256:9ee58096e7ab5b30041c2a2ff0cc187af5bff6b4d7a6be8a6d4f74ed23fe7cdf"
 
 generateContainerFile :: Action ()
 generateContainerFile = do
   need ["Containerfile.dhall"]
+  gitVer <- projectVersion
+  liftIO (setEnv "GIT_REV" gitVer)
   containerFile <- liftIO $ T.unpack <$> Dhall.input Dhall.strictText (T.pack (renderContainerfile <> "./Containerfile.dhall"))
   writeFile' "build/Containerfile" containerFile
   where
