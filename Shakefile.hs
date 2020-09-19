@@ -2,7 +2,6 @@ import Development.Shake
 import ShakeFactory
 import ShakeFactory.Container
 import ShakeFactory.Dhall
-import System.Environment (setEnv)
 
 imageRef :: String
 imageRef = "quay.io/software-factory/shake-factory"
@@ -13,8 +12,7 @@ containerFile = "build/Containerfile"
 generateContainerFile :: Action ()
 generateContainerFile = do
   need ["Containerfile.dhall"]
-  gitVer <- projectVersion
-  liftIO (setEnv "GIT_REV" gitVer)
+  setEnvFromAction projectVersion "GIT_REV"
   dhallContainerAction "./Containerfile.dhall" "0.1.0" containerFile
 
 main :: IO ()
