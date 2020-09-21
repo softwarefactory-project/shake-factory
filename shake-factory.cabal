@@ -46,6 +46,7 @@ library
                      , ShakeFactory.Haskell
                      , ShakeFactory.Python
                      , ShakeFactory.Container
+                     , ShakeFactory.OpenShift
 
 executable shake-factory
   import:              common-options
