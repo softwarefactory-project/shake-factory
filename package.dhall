@@ -1,10 +1,13 @@
 let Containerfile =
       https://raw.githubusercontent.com/softwarefactory-project/dhall-containerfile/0.1.0/package.dhall sha256:9ee58096e7ab5b30041c2a2ff0cc187af5bff6b4d7a6be8a6d4f74ed23fe7cdf
 
+let OpenShift =
+      https://raw.githubusercontent.com/TristanCacqueray/dhall-openshift/c2ae2e5b0421c81b804cf0d6093a1b1e1a115f8c/mini-package.dhall sha256:7325790b3874ed8dc0459965a880f583c6b37a8871882590f5d6e4b5187f9a82
+
 let Env =
-      { fedora-release = env:FEDORA_RELEASE as Text
-      , stack-path = env:STACK_PATH as Text
-      , git-ver = env:GIT_REV as Text
+      { fedora-release = env:FEDORA_RELEASE as Text ? "32"
+      , stack-path = env:STACK_PATH as Text ? "."
+      , git-ver = env:GIT_REV as Text ? "master"
       }
 
 let StackContainer =
@@ -30,4 +33,111 @@ let StackContainer =
             # Containerfile.volume [ "/data" ]
             # Containerfile.entrypoint [ "/bin/${name}" ]
 
-in  { Container.Stack = StackContainer Env }
+let DeploySimple =
+      \(name : Text) ->
+      \(image : Text) ->
+      \(port : Natural) ->
+      \(hostname : Text) ->
+      \(config : OpenShift.ConfigMap.Type) ->
+        let toto = 42
+
+        let deployment =
+              OpenShift.Deployment::{
+              , metadata = OpenShift.ObjectMeta::{ name = Some name }
+              , spec = Some OpenShift.DeploymentSpec::{
+                , selector = OpenShift.LabelSelector::{
+                  , matchLabels = Some (toMap { app = name })
+                  }
+                , replicas = Some 1
+                , template = OpenShift.PodTemplateSpec::{
+                  , metadata = OpenShift.ObjectMeta::{
+                    , name = Some name
+                    , labels = Some (toMap { app = name })
+                    }
+                  , spec = Some OpenShift.PodSpec::{
+                    , volumes = Some
+                      [ OpenShift.Volume::{
+                        , name = "${name}-config"
+                        , configMap = Some OpenShift.ConfigMapVolumeSource::{
+                          , name = config.metadata.name
+                          }
+                        }
+                      ]
+                    , containers =
+                      [ OpenShift.Container::{
+                        , name
+                        , image = Some image
+                        , ports = Some
+                          [ OpenShift.ContainerPort::{ containerPort = port } ]
+                        , volumeMounts = Some
+                          [ OpenShift.VolumeMount::{
+                            , name = "${name}-config"
+                            , mountPath = "/data/"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+
+        let service =
+              OpenShift.Service::{
+              , metadata = OpenShift.ObjectMeta::{
+                , name = Some "${name}-service"
+                }
+              , spec = Some OpenShift.ServiceSpec::{
+                , selector = Some (toMap { app = name })
+                , ports = Some
+                  [ OpenShift.ServicePort::{
+                    , targetPort = Some (OpenShift.IntOrString.Int port)
+                    , port = 80
+                    }
+                  ]
+                }
+              }
+
+        let route =
+              OpenShift.Route::{
+              , metadata = OpenShift.ObjectMeta::{ name = Some name }
+              , spec = OpenShift.RouteSpec::{
+                , host = hostname
+                , path = Some "/"
+                , port = Some OpenShift.RoutePort::{
+                  , targetPort = OpenShift.IntOrString.Int port
+                  }
+                , tls = Some OpenShift.TLSConfig::{
+                  , insecureEdgeTerminationPolicy = Some "Redirect"
+                  , termination = "edge"
+                  }
+                , to = OpenShift.RouteTargetReference::{
+                  , kind = "Service"
+                  , name = "${name}-service"
+                  , weight = 100
+                  }
+                }
+              }
+
+        in  { apiVersion = "v1"
+            , kind = "List"
+            , items =
+              [ OpenShift.Resource.Route route
+              , OpenShift.Resource.Service service
+              , OpenShift.Resource.Deployment deployment
+              , OpenShift.Resource.ConfigMap config
+              ]
+            }
+
+in  { Container.Stack = StackContainer Env
+    , OpenShift =
+      { Simple = DeploySimple
+      , Config =
+          \(name : Text) ->
+          \(data : List { mapKey : Text, mapValue : Text }) ->
+            OpenShift.ConfigMap::{
+            , metadata = OpenShift.ObjectMeta::{ name = Some name }
+            , data = Some data
+            }
+      }
+    }
