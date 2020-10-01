@@ -16,6 +16,7 @@ module ShakeFactory.Dhall
 
     -- * Helpers
     dhallDocsRules,
+    dhallDocsDirRules,
     mkDhallPackage,
     mkDhallUnion,
 
@@ -169,11 +170,13 @@ dhallTopLevelPackageAction src dst = do
   dhallFormat src >>= writeFile' dst
 
 -- | Render the documentation of a dhall project
-dhallDocsRules ::
+dhallDocsDirRules ::
+  -- | The root of the dhall package
+  FilePath ->
   -- | The name of the dhall package
   String ->
   Rules ()
-dhallDocsRules name =
+dhallDocsDirRules dir name =
   do
     phony "docs" dhallDocsNeed
     phony "docs-publish" dhallDocsPublish
@@ -182,7 +185,7 @@ dhallDocsRules name =
     dhallDocsNeed = need ["build/docs/index.html"]
     dhallDocsAction = do
       cmd_ "mkdir -p build"
-      cmd_ "dhall-docs --input . --package-name" name "--output-link build/result --ascii"
+      cmd_ "dhall-docs --input" dir "--package-name" name "--output-link build/result --ascii"
       cmd_ "rsync --delete -r build/result/ build/docs/"
       cmd_ "find build/docs/ -type d -exec chmod 0755 {} +"
       cmd_ "find build/docs/ -type f -exec chmod 0644 {} +"
@@ -190,6 +193,12 @@ dhallDocsRules name =
     dhallDocsPublish = do
       dhallDocsNeed
       cmd_ "rsync --delete -avi ./build/docs/" dhallDocsDest
+
+dhallDocsRules ::
+  -- | The name of the dhall package
+  String ->
+  Rules ()
+dhallDocsRules = dhallDocsDirRules "."
 
 mkDhallObject :: (String, String) -> String -> String -> [FilePath] -> String
 mkDhallObject (prefix, suffix) sep assignSep = mkObject . map mkItems
