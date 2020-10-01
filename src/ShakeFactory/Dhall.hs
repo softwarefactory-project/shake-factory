@@ -26,7 +26,7 @@ where
 
 import Control.Monad (when)
 import Data.Bifunctor (second)
-import Data.List (isPrefixOf, isSuffixOf, sortOn)
+import Data.List (isPrefixOf, isSuffixOf, sortOn, partition)
 import Data.Text (Text, pack, unpack)
 import Development.Shake
 import Development.Shake.Dhall (needDhall)
@@ -225,7 +225,15 @@ dhallFileAction :: ([FilePath] -> String) -> [FilePattern] -> FilePath -> Action
 dhallFileAction mkFile patterns target =
   do
     -- Get the directory files excluding "package.dhall" and "Prelude.dhall"
-    files <- filter (`notElem` ["package.dhall", "Prelude.dhall"]) <$> getDirectoryFiles targetDir patterns
+    allFiles <- filter (`notElem` ["package.dhall", "Prelude.dhall"]) <$> getDirectoryFiles targetDir patterns
+    -- Read the README.md if present
+    let (readmeFile, files) = partition (== "README.md") allFiles
+    docContent <- case readmeFile of
+      [file] -> do
+        fileContent <- readFile' (targetDir </> file)
+        pure ("{-|\n" <> fileContent <> "-}\n")
+      [] -> pure ""
+      _ -> error "Multiple README.md found file?!"
     putVerbose $ "Creating file with: " <> show files
     -- Generate the file
     let packageText = mkFile files
@@ -233,7 +241,8 @@ dhallFileAction mkFile patterns target =
     -- Indicate that this file needs all of it's file import
     need (map (targetDir </>) files)
     -- Format and freeze the package
-    dhallFormat packageText >>= writeFile' target
+    dhallContent <- dhallFormat packageText
+    writeFile' target (docContent <> dhallContent)
   where
     targetDir = takeDirectory target
 
@@ -244,7 +253,7 @@ dhallUnionAction = dhallFileAction mkDhallUnion
 --   For example, if the location directory contains a Type and default file, the package will contains:
 --   { Type = ./Type.dhall, default = ./default.dhall }
 dhallPackageAction :: FilePath -> Action ()
-dhallPackageAction = dhallFileAction mkDhallPackage ["*.dhall", "*/package.dhall"]
+dhallPackageAction = dhallFileAction mkDhallPackage ["README.md", "*.dhall", "*/package.dhall"]
 
 -- | Ensure the readme contains the latest content and result
 --   This function replace every code-block with the file content
