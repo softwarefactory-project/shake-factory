@@ -1,0 +1,8 @@
+Code-Review+2: Nicolas HICHER <nhicher@redhat.com>
+Workflow+1: Nicolas HICHER <nhicher@redhat.com>
+Verified+2: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-by: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-at: Fri, 02 Oct 2020 17:09:59 +0000
+Reviewed-on: https://softwarefactory-project.io/r/19677
+Project: software-factory/shake-factory
+Branch: refs/heads/master
