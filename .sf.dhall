@@ -23,6 +23,17 @@ let hlint =
           )
       }
 
+let npm-test =
+      { name = Some "shake-factory-npm-test"
+      , nodeset = Some
+          ( Zuul.Nodeset.Inline
+              Zuul.Nodeset::{
+              , nodes = [ { name = "container", label = "pod-nodejs-builder" } ]
+              }
+          )
+      , run = Some "playbooks/npm-test.yaml"
+      }
+
 let base-vars =
       [ { mapKey = "ghc_version", mapValue = Zuul.Vars.double 8.6 }
       , { mapKey = "shake_target", mapValue = Zuul.Vars.string "" }
@@ -70,6 +81,8 @@ let gate-jobs =
 
 let post-jobs = [ Zuul.Job::publish-docs ]
 
+let exposed-jobs = [ Zuul.Job::npm-test ]
+
 let mkPipeline =
       \(gate-jobs : List Zuul.Job.Type) ->
         let ci-pipeline =
@@ -111,7 +124,7 @@ let shakeTest =
 
 in  { zuul =
           Zuul.Nodeset.wrap [ nodeset ]
-        # Zuul.Job.wrap (gate-jobs # post-jobs)
+        # Zuul.Job.wrap (gate-jobs # post-jobs # exposed-jobs)
         # Zuul.Project.wrap (mkPipeline gate-jobs)
     , mkPipeline
     , shakeTest

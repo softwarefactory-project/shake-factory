@@ -47,6 +47,7 @@ library
                      , ShakeFactory.Dhall
                      , ShakeFactory.Haskell
                      , ShakeFactory.Python
+                     , ShakeFactory.Javascript
 
 executable shake-factory
   import:              common-options
