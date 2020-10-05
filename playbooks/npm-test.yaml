@@ -1,0 +1,17 @@
+- hosts: all
+  vars:
+    project_dir: "{{ zuul.project.src_dir }}/{{ project_root|default('') }}"
+  tasks:
+    # Symlink does not work when npm link to parent file directory
+    - name: Install node_modules
+      command: "mv /usr/libexec/shake/node_modules {{ project_dir }}/node_modules"
+
+    - name: Run npm install
+      command: npm install --no-save
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Run npm test
+      command: npm run test
+      args:
+        chdir: "{{ project_dir }}"
