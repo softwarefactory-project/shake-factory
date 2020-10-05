@@ -1,6 +1,9 @@
 let Containerfile =
       https://raw.githubusercontent.com/softwarefactory-project/dhall-containerfile/0.3.0/package.dhall sha256:03a6e298ff140d430cea8b387fad886ce9f5bee24622c7d1102115cc08ed9cf9
 
+let NpmPackage =
+      ~/src/softwarefactory-project.io/software-factory/dhall-npm-package/package.dhall
+
 let Text/concatSep =
       https://prelude.dhall-lang.org/Text/concatSep.dhall sha256:e4401d69918c61b92a4c0288f7d60a6560ca99726138ed8ebc58dca2cd205e58
 
@@ -115,8 +118,46 @@ let StackContainer =
             # Containerfile.volume [ "/data" ]
             # Containerfile.entrypoint [ "/bin/${name}" ]
 
+let NodeBuilder =
+      \(fedora-release : Natural) ->
+          Containerfile.from (fedora fedora-release)
+        # Containerfile.run
+            "Install requirements"
+            [ "dnf update -y"
+            , "dnf install -y nodejs make findutils openssl-devel rsync git python3 curl tar bzip2 xz"
+            , "dnf clean all"
+            ]
+        # Containerfile.copy
+            [ "package.json", "/usr/libexec/shake/package.json" ]
+        # Containerfile.run
+            "Install node dependencies"
+            [ "cd /usr/libexec/shake", "npm install" ]
+
+let NodeDependencies =
+      NpmPackage::{
+      , name = "builder"
+      , version = "0.1.0"
+      , private = Some True
+      , dependencies = Some
+          ( toMap
+              { react = "^16.13.1"
+              , react-dom = "^16.13.1"
+              , reason-react = "^0.9.1"
+              , bs-platform = "^8.2.0"
+              , `@patternfly/react-core` = "^4.50.2"
+              , `@glennsl/bs-jest` = "^0.5.1"
+              , `@glennsl/bs-json` = "^5.0.2"
+              , bs-fetch = "^0.6.2"
+              , parcel = "^1.12.4"
+              , jest = "^26.5.0"
+              }
+          )
+      }
+
 in  { Container =
       { Stack = StackContainer 33
       , StackBuilder = StackBuilder 33 StackPackages
+      , NodeBuilder = NodeBuilder 33
+      , NodeDependencies
       }
     }

@@ -54,6 +54,14 @@
       ghc_version: 8.6
       shake_target: docs
 
+- job:
+    name: shake-factory-npm-test
+    nodeset:
+      nodes:
+        - label: pod-nodejs-builder
+          name: container
+    run: playbooks/npm-test.yaml
+
 - project:
     check:
       jobs:
