@@ -5,6 +5,7 @@ module ShakeFactory.Dhall
     dhallFreeze,
     dhallFormatFreeze,
     dhallYaml,
+    dhallJson,
 
     -- * Actions
     dhallTopLevelPackageAction,
@@ -130,17 +131,35 @@ yamlPretty = unlines . dropWhile (== "") . init . unblocks . blocks [] . lines
       | otherwise = blocks (x : blk) xs
 
 -- | A shake action to render a yaml document
+dhallTo ::
+  -- | The output format
+  String ->
+  -- | The expression
+  String ->
+  -- | The output file
+  FilePath ->
+  Action ()
+dhallTo to expr output = do
+  exprIsFile <- doesFileExist expr
+  when exprIsFile (needDhall [expr])
+  Stdout yaml <- command [Stdin expr] ("dhall-to-" <> to) []
+  writeFile' output (yamlPretty yaml)
+
 dhallYaml ::
   -- | The expression
   String ->
   -- | The output file
   FilePath ->
   Action ()
-dhallYaml expr output = do
-  exprIsFile <- doesFileExist expr
-  when exprIsFile (needDhall [expr])
-  Stdout yaml <- command [Stdin expr] "dhall-to-yaml" []
-  writeFile' output (yamlPretty yaml)
+dhallYaml = dhallTo "yaml"
+
+dhallJson ::
+  -- | The expression
+  String ->
+  -- | The output file
+  FilePath ->
+  Action ()
+dhallJson = dhallTo "json"
 
 -- | A shake action to render a zuul configuration
 dhallZuulAction ::

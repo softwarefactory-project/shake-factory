@@ -1,0 +1,15 @@
+- hosts: all
+  vars:
+    project_root: ""
+    project_dir: "{{ zuul.project.src_dir }}/{{ project_root }}"
+  tasks:
+    - name: Install node_modules
+      file:
+        src: /usr/libexec/shake/node_modules
+        dest: "{{ project_dir }}/node_modules"
+        state: link
+
+    - name: Run npm test
+      command: npm run test
+      args:
+        chdir: "{{ project_dir }}"

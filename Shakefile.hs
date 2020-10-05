@@ -2,6 +2,7 @@ import Development.Shake
 import ShakeFactory
 import ShakeFactory.Container
 import ShakeFactory.Dhall
+import ShakeFactory.Javascript
 
 imageRef :: String
 imageRef = "quay.io/software-factory/shake-factory"
@@ -14,6 +15,12 @@ builderRef = "quay.io/software-factory/stack-builder"
 
 builderFile :: String
 builderFile = "build/Containerfile-haskell-builder"
+
+nodejsBuilderRef :: String
+nodejsBuilderRef = "quay.io/software-factory/nodejs-builder"
+
+nodejsBuilderFile :: String
+nodejsBuilderFile = "build/Containerfile-nodejs-builder"
 
 generateContainerFile :: Action ()
 generateContainerFile = do
@@ -35,3 +42,10 @@ main = shakeMain $ do
   -- Builder container rules
   phony "builder-container" (dhallContainerAction "(./package.dhall).Container.Builder" "0.1.0" builderFile >> buildContainer builderFile builderRef)
   phony builderRef (publishContainer builderRef)
+  phony
+    "nodejs-builder-container"
+    ( do
+        dhallJson "(./package.dhall).Container.NodeDependencies" "build/package.json"
+        dhallContainerAction "(./package.dhall).Container.NodeBuilder" "0.3.0" nodejsBuilderFile
+        buildContainer nodejsBuilderFile nodejsBuilderRef
+    )

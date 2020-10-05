@@ -23,6 +23,17 @@ let hlint =
           )
       }
 
+let npm-test =
+      { name = Some "shake-factory-npm-test"
+      , nodeset = Some
+          ( Zuul.Nodeset.Inline
+              Zuul.Nodeset::{
+              , nodes = [ { name = "container", label = "pod-haskell-f32" } ]
+              }
+          )
+      , run = Some "playbooks/npm-test.yaml"
+      }
+
 let base-vars =
       [ { mapKey = "ghc_version", mapValue = Zuul.Vars.double 8.6 }
       , { mapKey = "shake_target", mapValue = Zuul.Vars.string "" }
@@ -66,7 +77,12 @@ let publish-docs =
           }
 
 let gate-jobs =
-      [ Zuul.Job::hlint, Zuul.Job::base, Zuul.Job::test, Zuul.Job::docs ]
+      [ Zuul.Job::hlint
+      , Zuul.Job::base
+      , Zuul.Job::test
+      , Zuul.Job::docs
+      , Zuul.Job::npm-test
+      ]
 
 let post-jobs = [ Zuul.Job::publish-docs ]
 

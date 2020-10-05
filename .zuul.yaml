@@ -39,6 +39,14 @@
       shake_target: docs
 
 - job:
+    name: shake-factory-npm-test
+    nodeset:
+      nodes:
+        - label: pod-haskell-f32
+          name: container
+    run: playbooks/npm-test.yaml
+
+- job:
     name: shake-factory-publish-docs
     nodeset: shake-factory-latest
     parent: docssf-publish
@@ -60,11 +68,13 @@
         - shake-factory-hlint
         - shake-factory-test
         - shake-factory-docs
+        - shake-factory-npm-test
     gate:
       jobs:
         - shake-factory-hlint
         - shake-factory-test
         - shake-factory-docs
+        - shake-factory-npm-test
     post:
       jobs:
         - shake-factory-publish-docs
