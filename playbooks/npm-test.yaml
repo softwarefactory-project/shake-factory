@@ -15,7 +15,10 @@
     - name: Remove linked node_modules
       shell: |
           for dep in $(grep '"file:\.\.\/' package.json | sed 's/.*:\.\.\/\(.*\)".*/\1/'); do
-            rm -Rf ../$dep/node_modules/
+            cd ../$dep;
+            rm -Rf node_modules;
+            ln -s ../{{ zuul.project.short_name }}/node_modules/ node_modules;
+            npm install --no-save
           done
       args:
         chdir: "{{ project_dir }}"
