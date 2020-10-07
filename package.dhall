@@ -7,6 +7,23 @@ let NpmPackage =
 let Text/concatSep =
       https://prelude.dhall-lang.org/Text/concatSep.dhall sha256:e4401d69918c61b92a4c0288f7d60a6560ca99726138ed8ebc58dca2cd205e58
 
+let CiPackages =
+      [ "make"
+      , "findutils"
+      , "openssl-devel"
+      , "rsync"
+      , "git"
+      , "python3"
+      , "curl"
+      , "tar"
+      , "bzip2"
+      , "xz"
+      ]
+
+let NpmPackages = [ "nodejs", "yarnpkg" ]
+
+let RpmBuildPackages = [ "createrepo", "rpm-build", "rpmdevtools" ]
+
 let StackPackages =
       [ "Glob"
       , "HsYAML"
@@ -124,14 +141,17 @@ let NodeBuilder =
         # Containerfile.run
             "Install requirements"
             [ "dnf update -y"
-            , "dnf install -y nodejs make findutils openssl-devel rsync git python3 curl tar bzip2 xz"
+            ,     "dnf install -y "
+              ++  Text/concatSep
+                    " "
+                    (CiPackages # NpmPackages # RpmBuildPackages)
             , "dnf clean all"
             ]
         # Containerfile.copy
             [ "package.json", "/usr/libexec/shake/package.json" ]
         # Containerfile.run
             "Install node dependencies"
-            [ "cd /usr/libexec/shake", "npm install" ]
+            [ "cd /usr/libexec/shake", "yarn install" ]
 
 let NodeDependencies =
       NpmPackage::{
