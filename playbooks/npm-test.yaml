@@ -11,6 +11,15 @@
       args:
         chdir: "{{ project_dir }}"
 
+    # Npm incorrectly install a nested node_modules for linked dependencies...
+    - name: Remove linked node_modules
+      shell: |
+          for dep in $(grep '"file:\.\.\/' package.json | sed 's/.*:\.\.\/\(.*\)".*/\1/'); do
+            rm -Rf ../$dep/node_modules/
+          done
+      args:
+        chdir: "{{ project_dir }}"
+
     - name: Run npm test
       command: npm run test
       args:
