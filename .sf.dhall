@@ -34,6 +34,17 @@ let npm-test =
       , run = Some "playbooks/npm-test.yaml"
       }
 
+let npm-rpmbuild =
+      { name = Some "shake-factory-npm-rpmbuild"
+      , nodeset = Some
+          ( Zuul.Nodeset.Inline
+              Zuul.Nodeset::{
+              , nodes = [ { name = "container", label = "pod-nodejs-builder" } ]
+              }
+          )
+      , run = Some "playbooks/npm-rpmbuild.yaml"
+      }
+
 let base-vars =
       [ { mapKey = "ghc_version", mapValue = Zuul.Vars.double 8.6 }
       , { mapKey = "shake_target", mapValue = Zuul.Vars.string "" }
@@ -81,7 +92,7 @@ let gate-jobs =
 
 let post-jobs = [ Zuul.Job::publish-docs ]
 
-let shared-jobs = [ Zuul.Job::npm-test ]
+let shared-jobs = [ Zuul.Job::npm-test, Zuul.Job::npm-rpmbuild ]
 
 let mkPipeline =
       \(gate-jobs : List Zuul.Job.Type) ->
