@@ -1,0 +1,44 @@
+- hosts: all
+  vars:
+    project_dir: "{{ zuul.project.src_dir }}/"
+  tasks:
+    # Symlink does not work when npm link to parent file directory
+    - name: Install node_modules
+      command: "mv /usr/libexec/shake/node_modules {{ project_dir }}/node_modules"
+
+    - name: Run npm install
+      command: npm install --no-save
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Run npm dist
+      command: npm run dist
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Install rpmbuild requirements
+      package:
+        name:
+          - createrepo
+          - rpm-build
+          - rpmdevtools
+      become: yes
+
+    - name: Setup rpmbuild tree
+      command: rpmdev-setuptree
+
+    - name: Create tarball
+      command: tar czf ~/rpmbuild/SOURCES/dist.tar.gz dist/
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Build rpm
+      command: rpmbuild -D "%dist .el7" -ba "{{ zuul.project.short_name }}.spec"
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Create buildset artifact
+      shell: |
+        mkdir ~/zuul-output/logs/buildset
+        mv ~/rpmbuild/SRPMS/*.src.rpm ~/rpmbuild/RPMS/*/*.rpm ~/zuul-output/logs/buildset/
+        createrepo ~/zuul-output/logs/buildset/
