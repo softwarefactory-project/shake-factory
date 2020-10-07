@@ -62,6 +62,14 @@
           name: container
     run: playbooks/npm-test.yaml
 
+- job:
+    name: shake-factory-npm-rpmbuild
+    nodeset:
+      nodes:
+        - label: pod-nodejs-builder
+          name: container
+    run: playbooks/npm-rpmbuild.yaml
+
 - project:
     check:
       jobs:
