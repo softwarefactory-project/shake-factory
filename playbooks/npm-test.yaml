@@ -11,6 +11,10 @@
       args:
         chdir: "{{ project_dir }}"
 
+    # Npm incorrectly install a nested node_modules for linked dependencies...
+    - name: Remove linked node_modules
+      command: rm -Rf ../re-patternfly/node_modules/ ../re-sf/node_modules/
+
     - name: Run npm test
       command: npm run test
       args:
