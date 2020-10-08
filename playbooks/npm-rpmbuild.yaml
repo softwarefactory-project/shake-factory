@@ -11,6 +11,11 @@
       args:
         chdir: "{{ project_dir }}"
 
+    - name: Run yarn build
+      command: yarn build
+      args:
+        chdir: "{{ project_dir }}"
+
     - name: Run yarn dist
       command: yarn dist
       args:
