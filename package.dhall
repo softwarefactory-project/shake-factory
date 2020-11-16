@@ -165,6 +165,10 @@ let NodeDependencies =
               , reason-react = "^0.9.1"
               , bs-platform = "^8.2.0"
               , decco = "^1.3.0"
+              , tablecloth-bucklescript =
+                  "https://github.com/darklang/tablecloth"
+              , `@justgage/reason-cookie` = "^0.1.2"
+              , js-yaml = "^3.14.0"
               , `@reasonml-community/graphql-ppx` = "^1.0.0-beta.22"
               , `@patternfly/react-core` = "^4.50.2"
               , `@patternfly/react-table` = "^4.18.14"
