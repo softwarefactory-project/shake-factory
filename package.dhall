@@ -172,6 +172,7 @@ let NodeDependencies =
               , `@patternfly/react-charts` = "^6.11.3"
               , `@glennsl/bs-jest` = "^0.5.1"
               , `@glennsl/bs-json` = "^5.0.2"
+              , bs-webapi = "^0.19.1"
               , bs-fetch = "^0.6.2"
               , parcel = "^1.12.4"
               , jest = "^26.5.0"
