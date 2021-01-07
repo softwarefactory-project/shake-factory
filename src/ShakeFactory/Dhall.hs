@@ -19,6 +19,7 @@ module ShakeFactory.Dhall
     -- * Helpers
     dhallDocsRules,
     dhallDocsDirRules,
+    dhallReleaseRules,
     mkDhallPackage,
     mkDhallUnion,
 
@@ -27,9 +28,10 @@ module ShakeFactory.Dhall
   )
 where
 
-import Control.Monad (when)
+import Control.Monad (forM_, when)
 import Data.Bifunctor (second)
-import Data.List (isPrefixOf, isSuffixOf, sortOn, partition)
+import Data.List (isPrefixOf, isSuffixOf, partition, sortOn)
+import Data.Maybe
 import Data.Text (Text, pack, unpack)
 import Development.Shake
 import Development.Shake.Dhall (needDhall)
@@ -235,6 +237,23 @@ dhallDocsDirRules dir name =
     dhallDocsPublish = do
       dhallDocsNeed
       cmd_ "rsync --delete -avi ./build/docs/" dhallDocsDest
+
+-- | A shake rule to assist dhall package release
+dhallReleaseRules ::
+  -- | Path of the real package
+  FilePath ->
+  Rules ()
+dhallReleaseRules path = phony "release" dhallReleaseAction
+  where
+    dhallReleaseAction :: Action ()
+    dhallReleaseAction = do
+      version <- fromMaybe "x.x" <$> getEnv "VERSION"
+      putInfo $ "To release " <> show version <> ", run:"
+      forM_ [path, "./package.dhall"] putInfo
+      putInfo $ "git commit -a -m 'Freeze release " <> version <> "'"
+      putInfo $ "git tag -a -m " <> version <> " " <> version
+      putInfo $ "git push gerrit " <> version
+      putInfo "git reset --hard HEAD^"
 
 dhallDocsRules ::
   -- | The name of the dhall package
