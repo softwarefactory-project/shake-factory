@@ -267,7 +267,7 @@ mkDhallObject (prefix, suffix) sep assignSep = mkObject . map mkItems
     mkObject :: [String] -> String
     mkObject items = prefix <> " " <> drop 3 (concat items) <> " " <> suffix
     mkItems :: FilePath -> String
-    mkItems f = " " <> sep <> " " <> getName f <> " " <> assignSep <> " ./" <> f
+    mkItems f = " " <> sep <> " `" <> getName f <> "` " <> assignSep <> " ./" <> f
     getName :: FilePath -> String
     getName fp =
       let fc = getFirstComponent fp
@@ -280,14 +280,14 @@ mkDhallObject (prefix, suffix) sep assignSep = mkObject . map mkItems
 -- | Create a dhall package from a list of files:
 --
 --   >>> mkDhallPackage ["Type.dhall", "Project/package.dhall"]
---   "{ Type = ./Type.dhall , Project = ./Project/package.dhall }"
+--   "{ `Type` = ./Type.dhall , `Project` = ./Project/package.dhall }"
 mkDhallPackage :: [FilePath] -> String
 mkDhallPackage = mkDhallObject ("{", "}") "," "="
 
 -- | Create a dhall union from a list of files:
 --
 --   >>> mkDhallUnion ["Job/package.dhall", "Project/package.dhall"]
---   "< Job : ./Job/package.dhall | Project : ./Project/package.dhall >"
+--   "< `Job` : ./Job/package.dhall | `Project` : ./Project/package.dhall >"
 mkDhallUnion :: [FilePath] -> String
 mkDhallUnion = mkDhallObject ("<", ">") "|" ":"
 
