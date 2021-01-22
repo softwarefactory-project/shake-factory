@@ -267,7 +267,7 @@ mkDhallObject (prefix, suffix) sep assignSep = mkObject . map mkItems
     mkObject :: [String] -> String
     mkObject items = prefix <> " " <> drop 3 (concat items) <> " " <> suffix
     mkItems :: FilePath -> String
-    mkItems f = " " <> sep <> " " <> getName f <> " " <> assignSep <> " ./" <> f
+    mkItems f = " " <> sep <> " `" <> getName f <> "` " <> assignSep <> " ./" <> f
     getName :: FilePath -> String
     getName fp =
       let fc = getFirstComponent fp
