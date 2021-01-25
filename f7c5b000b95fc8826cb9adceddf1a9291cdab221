@@ -1,0 +1,8 @@
+Code-Review+2: Fabien Boucher <fboucher@redhat.com>
+Workflow+1: Fabien Boucher <fboucher@redhat.com>
+Verified+2: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-by: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-at: Mon, 25 Jan 2021 14:53:53 +0000
+Reviewed-on: https://softwarefactory-project.io/r/20707
+Project: software-factory/shake-factory
+Branch: refs/heads/master
