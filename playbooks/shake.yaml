@@ -3,7 +3,7 @@
     project_shakefile: "{{ zuul.project.src_dir }}/Shakefile.hs"
   tasks:
     - name: Install shake-factory
-      shell: rm -Rf ~/.ghc && cabal install --lib lib:shake-factory dhall shake shake-dhall text
+      shell: rm -Rf ~/.ghc && cabal install --lib lib:shake-factory dhall shake shake-dhall text casing bytestring containers
       args:
         chdir: "~/src/softwarefactory-project.io/software-factory/shake-factory"
 
