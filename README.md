@@ -15,7 +15,7 @@ You will need the latest cabal-install (version 3), for example on fedora:
 
 ```
 sudo dnf copr enable -y petersen/cabal-install && sudo dnf install -y cabal-install ghc
-cabal install --lib lib:shake-factory dhall shake shake-dhall text bytestring containers
+cabal install --lib lib:shake-factory dhall shake shake-dhall text bytestring containers casing
 ```
 
 This install the library in `~/.cabal` and it creates an environment in `~/.ghc`.

@@ -19,6 +19,7 @@ common common-options
                      , dhall == 1.34.0
                      , shake == 0.19.1
                      , shake-dhall == 0.1.0.0
+                     , casing
                      , text
   ghc-options:         -Wall
                        -Wcompat
