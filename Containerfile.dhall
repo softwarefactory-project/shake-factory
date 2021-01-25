@@ -39,7 +39,7 @@ in    Containerfile.from "registry.fedoraproject.org/fedora:32"
         [ "rm -Rf ~/.ghc"
         , "cd /usr/src/shake-factory"
         , "echo building ${git-rev}"
-        , "cabal install --lib lib:shake-factory dhall shake shake-dhall text bytestring containers"
+        , "cabal install --lib lib:shake-factory casing dhall shake shake-dhall text bytestring containers"
         ]
     # Containerfile.workdir "/data"
     # Containerfile.entrypoint [ "shake" ]
