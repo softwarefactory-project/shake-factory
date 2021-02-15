@@ -9,7 +9,7 @@ let Prelude =
 let nodeset =
       Zuul.Nodeset::{
       , name = Some "shake-factory-latest"
-      , nodes = [ { name = "container", label = "pod-haskell-cabal-f32" } ]
+      , nodes = [ { name = "container", label = "zuul-worker-haskell" } ]
       }
 
 let hlint =
@@ -18,7 +18,8 @@ let hlint =
       , nodeset = Some
           ( Zuul.Nodeset.Inline
               Zuul.Nodeset::{
-              , nodes = [ { name = "container", label = "pod-haskell-f32" } ]
+              , nodes =
+                [ { name = "container", label = "zuul-worker-haskell" } ]
               }
           )
       }

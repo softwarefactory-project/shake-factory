@@ -1,14 +1,14 @@
 - nodeset:
     name: shake-factory-latest
     nodes:
-      - label: pod-haskell-cabal-f32
+      - label: zuul-worker-haskell
         name: container
 
 - job:
     name: shake-factory-hlint
     nodeset:
       nodes:
-        - label: pod-haskell-f32
+        - label: zuul-worker-haskell
           name: container
     parent: hlint
 
