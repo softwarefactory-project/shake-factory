@@ -16,9 +16,9 @@ tested-with:         GHC == 8.6.5
 common common-options
   build-depends:       base >= 4.12.0.0 && < 4.15
                      , directory
-                     , dhall == 1.34.0
-                     , shake == 0.19.1
-                     , shake-dhall == 0.1.0.0
+                     , dhall >= 1.34.0
+                     , shake >= 0.19.1
+                     , shake-dhall >= 0.1.0.0
                      , casing
                      , text
   ghc-options:         -Wall
