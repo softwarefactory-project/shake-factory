@@ -2,8 +2,11 @@
   vars:
     project_shakefile: "{{ zuul.project.src_dir }}/Shakefile.hs"
   tasks:
+    - name: Install dhall-json
+      shell: cabal install dhall-json && sudo ln -s ~/.cabal/bin/dhall-to-yaml /bin
+
     - name: Install shake-factory
-      shell: rm -Rf ~/.ghc && cabal install --lib lib:shake-factory dhall shake shake-dhall text casing bytestring containers
+      shell: rm -Rf ~/.ghc && cabal install --lib lib:shake-factory dhall shake shake-dhall text casing bytestring containers dhall-json
       args:
         chdir: "~/src/softwarefactory-project.io/software-factory/shake-factory"
 

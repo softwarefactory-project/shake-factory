@@ -1,33 +1,26 @@
 let Zuul =
         env:DHALL_ZUUL
-      ? https://raw.githubusercontent.com/softwarefactory-project/dhall-zuul/0.1.0/package.dhall sha256:40c8a33ee920d12ac4b27571031e27722b4ef63771abaaaca471bc08654c31dc
+      ? https://raw.githubusercontent.com/softwarefactory-project/dhall-zuul/0.1.0/package.dhall
+          sha256:40c8a33ee920d12ac4b27571031e27722b4ef63771abaaaca471bc08654c31dc
 
 let Prelude =
         env:DHALL_PRELUDE
-      ? https://raw.githubusercontent.com/dhall-lang/dhall-lang/v17.0.0/Prelude/package.dhall sha256:10db3c919c25e9046833df897a8ffe2701dc390fa0893d958c3430524be5a43e
+      ? https://raw.githubusercontent.com/dhall-lang/dhall-lang/v17.0.0/Prelude/package.dhall
+          sha256:10db3c919c25e9046833df897a8ffe2701dc390fa0893d958c3430524be5a43e
 
 let nodeset =
       Zuul.Nodeset::{
       , name = Some "shake-factory-latest"
-      , nodes = [ { name = "container", label = "zuul-worker-haskell" } ]
+      , nodes = [ { name = "container", label = "zuul-worker-haskell-ghc9" } ]
       }
 
 let hlint =
       { name = Some "shake-factory-hlint"
       , parent = Some "hlint"
-      , nodeset = Some
-          ( Zuul.Nodeset.Inline
-              Zuul.Nodeset::{
-              , nodes =
-                [ { name = "container", label = "zuul-worker-haskell" } ]
-              }
-          )
+      , nodeset = Some (Zuul.Nodeset.Name "shake-factory-latest")
       }
 
-let base-vars =
-      [ { mapKey = "ghc_version", mapValue = Zuul.Vars.double 8.6 }
-      , { mapKey = "shake_target", mapValue = Zuul.Vars.string "" }
-      ]
+let base-vars = [ { mapKey = "shake_target", mapValue = Zuul.Vars.string "" } ]
 
 let base =
       { name = Some "shake-factory-base"
